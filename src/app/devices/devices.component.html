@@ -1,0 +1,20 @@
+<h2>All Devices</h2>
+<div>
+    <label id="new-device">Device name: </label>
+    <input for="new-device" #deviceName />
+
+    <!-- (click) passes input value to add() and then clears the input -->
+    <button class="add-button" (click)="add(deviceName.value); deviceName.value=''">
+
+      Add device
+    </button>
+</div>
+
+<ul class="devices">
+    <li *ngFor="let device of devices">
+        <a routerLink="/detail/{{device.id}}">
+            <span class="badge">{{device.id}}</span> {{device.name}}
+        </a>
+        <button class="delete" title="delete device" (click)="delete(device)">x</button>
+    </li>
+</ul>

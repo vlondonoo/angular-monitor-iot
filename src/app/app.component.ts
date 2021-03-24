@@ -6,5 +6,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'angular-monitor-iot';
+  title = 'Monitor y control de riego plantas';
 }
