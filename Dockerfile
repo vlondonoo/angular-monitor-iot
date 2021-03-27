@@ -10,7 +10,6 @@ RUN npm run build
 ### STEP 2: Run web server ###
 FROM nginx
 RUN apt update && apt install -y curl
-#COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=compile-image /usr/src/app/dist/angular-monitor-iot /usr/share/nginx/html
 RUN ls -la /usr/share/nginx/html
 

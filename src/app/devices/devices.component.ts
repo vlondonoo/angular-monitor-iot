@@ -11,20 +11,23 @@ export class DevicesComponent implements OnInit {
 
   devices: Device[] = [];
 
-  constructor(private deviceService: DeviceService) { }
+  constructor(private deviceService: DeviceService) {}
 
   ngOnInit(): void {
+    
     this.getDevices();
   }
 
   getDevices(): void {
     this.deviceService.getDevices()
-        .subscribe(devices => this.devices = devices);
+        .subscribe(devices =>{
+          this.devices = devices});
   }
   add(name: string): void {
     name = name.trim();
+    let id:number = new Date().getTime();
     if (!name) { return; }
-    this.deviceService.addDevice({ name } as Device)
+    this.deviceService.addDevice({ id, name } as Device)
       .subscribe(device => {
         this.devices.push(device);
       });

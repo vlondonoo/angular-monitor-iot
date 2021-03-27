@@ -6,12 +6,12 @@ import { catchError, map, tap } from 'rxjs/operators';
 
 import { Device } from './device';
 import { MessageService } from './message.service';
-
+import { environment } from './../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class DeviceService {
 
-  private devicesUrl = 'api/devices';  // URL to web api
+  private devicesUrl = environment.baseUrl;  // URL to web api
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -23,11 +23,12 @@ export class DeviceService {
 
  
   getDevices(): Observable<Device[]> {
-    return this.http.get<Device[]>(this.devicesUrl)
+    const variableURl = `${this.devicesUrl}/read`
+    return this.http.get<Device[]>(variableURl)
       .pipe(
         tap(_ => this.log('fetched devices')),
         catchError(this.handleError<Device[]>('getDevices', []))
-      );
+      ); 
   }
 
   /** GET device by id. Return `undefined` when id not found */
@@ -46,7 +47,7 @@ export class DeviceService {
 
   /** GET device by id. Will 404 if id not found */
   getDevice(id: number): Observable<Device> {
-    const url = `${this.devicesUrl}/${id}`;
+    const url = `${this.devicesUrl}/readOne/${id}`;
     return this.http.get<Device>(url).pipe(
       tap(_ => this.log(`fetched device id=${id}`)),
       catchError(this.handleError<Device>(`getDevice id=${id}`))
@@ -59,7 +60,7 @@ export class DeviceService {
       // if not search term, return empty device array.
       return of([]);
     }
-    return this.http.get<Device[]>(`${this.devicesUrl}/?name=${term}`).pipe(
+    return this.http.get<Device[]>(`${this.devicesUrl}/readName/?name=${term}`).pipe(
       tap(x => x.length ?
          this.log(`found devices matching "${term}"`) :
          this.log(`no devices matching "${term}"`)),
@@ -71,7 +72,7 @@ export class DeviceService {
 
   /** POST: add a new device to the server */
   addDevice(device: Device): Observable<Device> {
-    return this.http.post<Device>(this.devicesUrl, device, this.httpOptions).pipe(
+    return this.http.post<Device>(this.devicesUrl+'/add', device, this.httpOptions).pipe(
       tap((newDevice: Device) => this.log(`added device w/ id=${newDevice.id}`)),
       catchError(this.handleError<Device>('addDevice'))
     );
@@ -79,7 +80,7 @@ export class DeviceService {
 
   /** DELETE: delete the device from the server */
   deleteDevice(id: number): Observable<Device> {
-    const url = `${this.devicesUrl}/${id}`;
+    const url = `${this.devicesUrl}/deleteOne/${id}`;
 
     return this.http.delete<Device>(url, this.httpOptions).pipe(
       tap(_ => this.log(`deleted device id=${id}`)),
@@ -89,7 +90,7 @@ export class DeviceService {
 
   /** PUT: update the device on the server */
   updateDevice(device: Device): Observable<any> {
-    return this.http.put(this.devicesUrl, device, this.httpOptions).pipe(
+    return this.http.put(this.devicesUrl+'/update', device, this.httpOptions).pipe(
       tap(_ => this.log(`updated device id=${device.id}`)),
       catchError(this.handleError<any>('updateDevice'))
     );
