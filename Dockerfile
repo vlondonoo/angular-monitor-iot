@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 COPY package.json ./
 RUN npm install
 COPY . .
-CMD ["npm", "start"]
+RUN npm start &
 
 ### STEP 2: Run web server ###
 FROM nginx
