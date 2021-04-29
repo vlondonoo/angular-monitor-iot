@@ -21,6 +21,7 @@ export class DevicesComponent implements OnInit {
   getDevices(): void {
     this.deviceService.getDevices()
         .subscribe(devices =>{
+          console.log('devices in componente?L', devices)
           this.devices = devices});
   }
   add(name: string): void {

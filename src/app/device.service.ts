@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams,  } from '@angular/common/http';
 
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
@@ -14,7 +14,13 @@ export class DeviceService {
   private devicesUrl = environment.baseUrl;  // URL to web api
 
   httpOptions = {
-    headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    headers: new HttpHeaders(
+      { 'Content-Type': 'application/json',
+      "Access-Control-Allow-Origin": "*",
+      Accept : '*/*' ,
+      mode: 'no-cors'
+     },
+      )
   };
 
   constructor(
@@ -23,9 +29,13 @@ export class DeviceService {
 
  
   getDevices(): Observable<Device[]> {
-    const variableURl = `${this.devicesUrl}/read`
+    const variableURl = "/read"
     return this.http.get<Device[]>(variableURl)
       .pipe(
+        map((response: any) => {
+          console.log('respuesta: /read');
+          return response.Items;
+        }),
         tap(_ => this.log('fetched devices')),
         catchError(this.handleError<Device[]>('getDevices', []))
       ); 
@@ -33,10 +43,10 @@ export class DeviceService {
 
   /** GET device by id. Return `undefined` when id not found */
   getDeviceNo404<Data>(id: number): Observable<Device> {
-    const url = `${this.devicesUrl}/?id=${id}`;
+    const url = `?id=${id}`;
     return this.http.get<Device[]>(url)
       .pipe(
-        map(devices => devices[0]), // returns a {0|1} element array
+        map((response: any) => { console.log('respuesta: /readOne', response); return response.Item}), // returns a {0|1} element array
         tap(h => {
           const outcome = h ? `fetched` : `did not find`;
           this.log(`${outcome} device id=${id}`);
@@ -47,8 +57,12 @@ export class DeviceService {
 
   /** GET device by id. Will 404 if id not found */
   getDevice(id: number): Observable<Device> {
-    const url = `${this.devicesUrl}/readOne/${id}`;
+    const url = `readOne/${id}`;
     return this.http.get<Device>(url).pipe(
+      map((response: any) => {
+        console.log('respuesta: /readOne', response);
+        return response
+      }),
       tap(_ => this.log(`fetched device id=${id}`)),
       catchError(this.handleError<Device>(`getDevice id=${id}`))
     );
@@ -61,6 +75,10 @@ export class DeviceService {
       return of([]);
     }
     return this.http.get<Device[]>(`${this.devicesUrl}/readName/?name=${term}`).pipe(
+      map((response: any) => {
+        console.log('respuesta: /readName', response);
+        return response
+      }),
       tap(x => x.length ?
          this.log(`found devices matching "${term}"`) :
          this.log(`no devices matching "${term}"`)),
@@ -71,18 +89,49 @@ export class DeviceService {
   //////// Save methods //////////
 
   /** POST: add a new device to the server */
-  addDevice(device: Device): Observable<Device> {
-    return this.http.post<Device>(this.devicesUrl+'/add', device, this.httpOptions).pipe(
-      tap((newDevice: Device) => this.log(`added device w/ id=${newDevice.id}`)),
-      catchError(this.handleError<Device>('addDevice'))
-    );
+  addDevice(device: Device, req?: any): Observable<Device> {
+
+    const body = new HttpParams()
+      .set('id', device.id.toString())
+      .set('name', device.name);
+
+      const b = JSON.stringify(body);
+
+      console.log('device in add: ', device, 'request: ', req)
+    return this.http.post<Device>(
+      '/add',
+      device,
+      {headers: {
+        'Content-Type': 'application/json',
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+     "Access-Control-Allow-Origin": "*",
+     'Access-Control-Allow-Credentials': 'true',
+      },}
+      )
+      
+      .pipe(
+        map((response: any) => {
+          console.log('respuesta: /add', response);
+          return response
+        }),
+        tap((newDevice: Device) => this.log(`added device w/ id=${newDevice.id}`)),
+        catchError(this.handleError<Device>('addDevice'))
+      );
   }
+
+
+   
 
   /** DELETE: delete the device from the server */
   deleteDevice(id: number): Observable<Device> {
-    const url = `${this.devicesUrl}/deleteOne/${id}`;
+    const url = `/deleteOne/${id}`;
 
     return this.http.delete<Device>(url, this.httpOptions).pipe(
+      map((response: any) => {
+        console.log('respuesta: /deleteOne', response);
+        return response
+      }),
       tap(_ => this.log(`deleted device id=${id}`)),
       catchError(this.handleError<Device>('deleteDevice'))
     );
@@ -90,8 +139,16 @@ export class DeviceService {
 
   /** PUT: update the device on the server */
   updateDevice(device: Device): Observable<any> {
-    return this.http.put(this.devicesUrl+'/update', device, this.httpOptions).pipe(
-      tap(_ => this.log(`updated device id=${device.id}`)),
+    console.log('device in UPDATE: ', device)
+    const body = new HttpParams()
+      .set('id', device.id.toString())
+      .set('name', device.name);
+
+
+
+
+    return this.http.put('/update', body, this.httpOptions).pipe(
+      tap(r => this.log(`updated device id=${device.id}`)),
       catchError(this.handleError<any>('updateDevice'))
     );
   }
