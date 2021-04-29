@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams,  } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
@@ -16,9 +16,6 @@ export class DeviceService {
   httpOptions = {
     headers: new HttpHeaders(
       { 'Content-Type': 'application/json',
-      "Access-Control-Allow-Origin": "*",
-      Accept : '*/*' ,
-      mode: 'no-cors'
      },
       )
   };
@@ -69,19 +66,19 @@ export class DeviceService {
   }
 
   /* GET devices whose name contains search term */
-  searchDevices(term: string): Observable<Device[]> {
-    if (!term.trim()) {
+  searchDevices(name: string): Observable<Device[]> {
+    if (!name.trim()) {
       // if not search term, return empty device array.
       return of([]);
     }
-    return this.http.get<Device[]>(`${this.devicesUrl}/readName/?name=${term}`).pipe(
+    return this.http.get<Device[]>(`${this.devicesUrl}/readName/${name}`).pipe(
       map((response: any) => {
         console.log('respuesta: /readName', response);
         return response
       }),
       tap(x => x.length ?
-         this.log(`found devices matching "${term}"`) :
-         this.log(`no devices matching "${term}"`)),
+         this.log(`found devices matching "${name}"`) :
+         this.log(`no devices matching "${name}"`)),
       catchError(this.handleError<Device[]>('searchDevices', []))
     );
   }
@@ -89,27 +86,17 @@ export class DeviceService {
   //////// Save methods //////////
 
   /** POST: add a new device to the server */
-  addDevice(device: Device, req?: any): Observable<Device> {
+  addDevice(device: Device): Observable<Device> {
+    console.log('device in add: ', device)
 
-    const body = new HttpParams()
-      .set('id', device.id.toString())
-      .set('name', device.name);
-
-      const b = JSON.stringify(body);
-
-      console.log('device in add: ', device, 'request: ', req)
     return this.http.post<Device>(
-      '/add',
-      device,
-      {headers: {
-        'Content-Type': 'application/json',
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-     "Access-Control-Allow-Origin": "*",
-     'Access-Control-Allow-Credentials': 'true',
-      },}
+      `${this.devicesUrl}/add`,
+      {
+        id: device.id.toString(),
+        name: device.name,
+      },
+      this.httpOptions,
       )
-      
       .pipe(
         map((response: any) => {
           console.log('respuesta: /add', response);
@@ -121,11 +108,11 @@ export class DeviceService {
   }
 
 
-   
-
   /** DELETE: delete the device from the server */
   deleteDevice(id: number): Observable<Device> {
     const url = `/deleteOne/${id}`;
+
+    console.log('delete id: ', id)
 
     return this.http.delete<Device>(url, this.httpOptions).pipe(
       map((response: any) => {
@@ -139,15 +126,16 @@ export class DeviceService {
 
   /** PUT: update the device on the server */
   updateDevice(device: Device): Observable<any> {
-    console.log('device in UPDATE: ', device)
-    const body = new HttpParams()
-      .set('id', device.id.toString())
-      .set('name', device.name);
+    const updateDevice = {
+      ...device.Item,
+      name: device.name,
+    }
 
-
-
-
-    return this.http.put('/update', body, this.httpOptions).pipe(
+    return this.http.put('/update', updateDevice, this.httpOptions).pipe(
+      map((response: any) => {
+        console.log('respuesta: /update', response);
+        return response
+      }),
       tap(r => this.log(`updated device id=${device.id}`)),
       catchError(this.handleError<any>('updateDevice'))
     );
