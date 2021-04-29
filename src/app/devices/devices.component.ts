@@ -14,19 +14,18 @@ export class DevicesComponent implements OnInit {
   constructor(private deviceService: DeviceService) {}
 
   ngOnInit(): void {
-    
+
     this.getDevices();
   }
 
   getDevices(): void {
     this.deviceService.getDevices()
-        .subscribe(devices =>{
-          console.log('devices in componente?L', devices)
-          this.devices = devices});
+        .subscribe(devices => {
+          this.devices = devices; });
   }
   add(name: string): void {
     name = name.trim();
-    let id:number = new Date().getTime();
+    const id: number = new Date().getTime();
     if (!name) { return; }
     this.deviceService.addDevice({ id, name } as Device)
       .subscribe(device => {

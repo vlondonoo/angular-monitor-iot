@@ -14,28 +14,24 @@ export class DeviceService {
   private devicesUrl = environment.baseUrl;  // URL to web api
 
   httpOptions = {
-    headers: new HttpHeaders(
-      { 'Content-Type': 'application/json',
-     },
-      )
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json',
+    })
   };
 
   constructor(
     private http: HttpClient,
     private messageService: MessageService) { }
 
- 
+
   getDevices(): Observable<Device[]> {
-    const variableURl = "/read"
+    const variableURl = '/read';
     return this.http.get<Device[]>(variableURl)
       .pipe(
-        map((response: any) => {
-          console.log('respuesta: /read');
-          return response.Items;
-        }),
+        map((response: any) => response.Items),
         tap(_ => this.log('fetched devices')),
         catchError(this.handleError<Device[]>('getDevices', []))
-      ); 
+      );
   }
 
   /** GET device by id. Return `undefined` when id not found */
@@ -43,7 +39,7 @@ export class DeviceService {
     const url = `?id=${id}`;
     return this.http.get<Device[]>(url)
       .pipe(
-        map((response: any) => { console.log('respuesta: /readOne', response); return response.Item}), // returns a {0|1} element array
+        map((response: any) => response.Item), // returns a {0|1} element array
         tap(h => {
           const outcome = h ? `fetched` : `did not find`;
           this.log(`${outcome} device id=${id}`);
@@ -56,10 +52,7 @@ export class DeviceService {
   getDevice(id: number): Observable<Device> {
     const url = `readOne/${id}`;
     return this.http.get<Device>(url).pipe(
-      map((response: any) => {
-        console.log('respuesta: /readOne', response);
-        return response
-      }),
+      map((response: any) => response),
       tap(_ => this.log(`fetched device id=${id}`)),
       catchError(this.handleError<Device>(`getDevice id=${id}`))
     );
@@ -71,11 +64,10 @@ export class DeviceService {
       // if not search term, return empty device array.
       return of([]);
     }
-    return this.http.get<Device[]>(`${this.devicesUrl}/readName/${name}`).pipe(
-      map((response: any) => {
-        console.log('respuesta: /readName', response);
-        return response
-      }),
+
+    console.log('name is: ', name);
+    return this.http.get<Device[]>(`${this.devicesUrl}readName/${name}`).pipe(
+      map((response: any) => response),
       tap(x => x.length ?
          this.log(`found devices matching "${name}"`) :
          this.log(`no devices matching "${name}"`)),
@@ -87,8 +79,6 @@ export class DeviceService {
 
   /** POST: add a new device to the server */
   addDevice(device: Device): Observable<Device> {
-    console.log('device in add: ', device)
-
     return this.http.post<Device>(
       `${this.devicesUrl}/add`,
       {
@@ -98,27 +88,18 @@ export class DeviceService {
       this.httpOptions,
       )
       .pipe(
-        map((response: any) => {
-          console.log('respuesta: /add', response);
-          return response
-        }),
+        map((response: any) =>  response),
         tap((newDevice: Device) => this.log(`added device w/ id=${newDevice.id}`)),
         catchError(this.handleError<Device>('addDevice'))
       );
   }
 
-
   /** DELETE: delete the device from the server */
   deleteDevice(id: number): Observable<Device> {
     const url = `/deleteOne/${id}`;
 
-    console.log('delete id: ', id)
-
     return this.http.delete<Device>(url, this.httpOptions).pipe(
-      map((response: any) => {
-        console.log('respuesta: /deleteOne', response);
-        return response
-      }),
+      map((response: any) => response),
       tap(_ => this.log(`deleted device id=${id}`)),
       catchError(this.handleError<Device>('deleteDevice'))
     );
@@ -129,13 +110,10 @@ export class DeviceService {
     const updateDevice = {
       ...device.Item,
       name: device.name,
-    }
+    };
 
     return this.http.put('/update', updateDevice, this.httpOptions).pipe(
-      map((response: any) => {
-        console.log('respuesta: /update', response);
-        return response
-      }),
+      map((response: any) => response),
       tap(r => this.log(`updated device id=${device.id}`)),
       catchError(this.handleError<any>('updateDevice'))
     );

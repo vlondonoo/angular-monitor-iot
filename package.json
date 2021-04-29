@@ -6,7 +6,7 @@
     "start": "ng serve --host 0.0.0.0 --disableHostCheck true  --proxy-config proxy.conf.js",   
     "build": "ng build",
     "test": "ng test",
-    "lint": "ng lint",
+    "lint": "ng lint --fix",
     "e2e": "ng e2e"
   },
   "private": true,

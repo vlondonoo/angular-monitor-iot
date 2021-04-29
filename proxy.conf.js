@@ -2,7 +2,7 @@ const PROXY_CONFIG = [
     {
         context: [
             "/read",
-            "/readName",
+            "/readName/*",
             "/readOne",
             "/add",
             "/deleteOne",
